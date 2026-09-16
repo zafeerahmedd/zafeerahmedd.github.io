@@ -1,5 +1,0 @@
-/* Plotter draw on the solar schematic. Load after styles.css. */
-.zaq-plotter {
-  position: absolute; pointer-events: none; user-select: none;
-  margin: 0; z-index: 1;
-}
