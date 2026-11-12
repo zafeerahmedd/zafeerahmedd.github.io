@@ -131,18 +131,31 @@
   }
   function scrollInstant(top){const el=document.documentElement,old=el.style.scrollBehavior;el.style.scrollBehavior='auto';window.scrollTo({top,behavior:'auto'});el.style.scrollBehavior=old;}
   function choose(index){
-    index=clamp(index,0,7);fromIdx=toIdx;toIdx=index;renderedIdx=index;settled=true;paint({position:index,index,open:1,progress:index/8,complete:false},true);
-    if(orbit()){const b=bounds();scrollInstant(b.start+b.range*(index+.2)/8);}
-    else if(projectPicker){
-      // Keep the compact picker and its changed image together in the viewport.
-      requestAnimationFrame(()=>{
-        const picker=projectPicker.closest('.compact-select');
-        const header=document.querySelector('.header');
-        const offset=(header?.getBoundingClientRect().height||80)+12;
-        const top=picker.getBoundingClientRect().top;
-        if(top<offset||top>offset+24)scrollInstant(scrollY+top-offset);
-      });
-    }
+    index=clamp(index,0,7);
+    /* Compact mode: each project's copy is a different length, so swapping
+       project changes the height of the whole gear band (measured: up to
+       140px). That reflow moved the page under the reader and pushed the
+       prev/next arrows off screen, so they had to scroll back up to change
+       project again. Pin the toolbar's on-screen position across the change:
+       measure it before, re-measure after the reflow, and absorb the
+       difference. The page then does not appear to move at all. */
+    const anchor=document.querySelector('.tooth-toolbar');
+    const before=(!orbit()&&anchor)?anchor.getBoundingClientRect().top:null;
+    fromIdx=toIdx;toIdx=index;renderedIdx=index;settled=true;
+    paint({position:index,index,open:1,progress:index/8,complete:false},true);
+    if(orbit()){const b=bounds();scrollInstant(b.start+b.range*(index+.2)/8);return;}
+    if(!anchor)return;
+    requestAnimationFrame(()=>{
+      const header=document.querySelector('.header');
+      const offset=(header?.getBoundingClientRect().height||80)+12;
+      let r=anchor.getBoundingClientRect();
+      if(before!==null&&Math.abs(r.top-before)>1){
+        scrollInstant(scrollY+(r.top-before));
+        r=anchor.getBoundingClientRect();
+      }
+      /* Only if the controls are genuinely off screen do we move the page. */
+      if(r.bottom<offset||r.top>innerHeight-40)scrollInstant(scrollY+r.top-offset);
+    });
   }
   if(story){
     body.classList.add('tooth-ready');
@@ -563,4 +576,108 @@
   new MutationObserver(apply).observe(body, {attributes: true, attributeFilter: ['class']});
 
   apply();
+})();
+
+/* ---- project grid: fire the cards like pistons ------------------------
+ * Columns fire in an offset order, not left to right, so a row reads as a
+ * bank of cylinders turning over rather than a wipe. The resting state is the
+ * CSS default; this only arms the animation, so if anything here fails the
+ * grid is still fully visible and readable.
+ */
+(() => {
+  'use strict';
+  const grid = document.querySelector('.pj-grid');
+  if (!grid || !('IntersectionObserver' in window)) return;
+  const cards = [...grid.querySelectorAll('.pj-card')];
+  if (!cards.length) return;
+
+  const body = document.body;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const off = () => body.classList.contains('motion-off') || reduce.matches;
+
+  const STEP = 58;                 // ms between cylinders
+  // Firing orders borrowed from real engines, picked by how many columns the
+  // grid actually has at this width.
+  const ORDER = {1: [0], 2: [0, 1], 3: [0, 2, 1], 4: [0, 2, 3, 1]};
+
+  function columns() {
+    const n = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+    return Math.max(1, Math.min(n, 4));
+  }
+
+  let io = null;
+  function arm() {
+    if (off()) { disarm(); return; }
+    grid.classList.add('pistons-armed');
+    const cols = columns();
+    const order = ORDER[cols] || ORDER[3];
+    io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const card = e.target;
+        const i = cards.indexOf(card);
+        const row = Math.floor(i / cols);
+        const phase = order.indexOf(i % cols);          // position in firing order
+        card.style.setProperty('--stroke', `${phase * STEP + row * 26}ms`);
+        card.classList.add('is-fired');
+        io.unobserve(card);
+      });
+    }, {threshold: 0, rootMargin: '0px 0px -8% 0px'});
+    cards.forEach(c => io.observe(c));
+    // Anything already on screen at arm time fires immediately.
+    requestAnimationFrame(() => {
+      cards.forEach(c => {
+        const r = c.getBoundingClientRect();
+        if (r.top < innerHeight && r.bottom > 0 && !c.classList.contains('is-fired')) {
+          c.classList.add('is-fired'); io.unobserve(c);
+        }
+      });
+    });
+  }
+  function disarm() {
+    io?.disconnect(); io = null;
+    grid.classList.remove('pistons-armed');
+    cards.forEach(c => { c.classList.remove('is-fired'); c.style.removeProperty('--stroke'); });
+  }
+
+  /* The Motion button toggles body.motion-off; follow it. The armed flag
+     lives on the grid, not on <body>, so this observer can never be woken by
+     its own writes. `want` also guards against a no-op class write firing a
+     mutation record, which is how the first version of this locked the tab. */
+  let want = null;
+  function sync() {
+    const next = !off();
+    if (next === want) return;
+    want = next;
+    next ? arm() : disarm();
+  }
+  new MutationObserver(sync).observe(body, {attributes: true, attributeFilter: ['class']});
+  reduce.addEventListener('change', sync);
+  sync();
+})();
+
+/* ---- only one project card open at a time ------------------------------
+ * Hover opens a card in CSS. A click also latches one open via
+ * aria-expanded, and the two could stack: a card clicked open stayed open
+ * while a second opened under the pointer, so two bodies were expanded at
+ * once and the grid jumped. Entering any card now clears every latched card
+ * except the one under the pointer.
+ */
+(() => {
+  'use strict';
+  const grid = document.querySelector('.pj-grid');
+  if (!grid) return;
+  const heads = [...grid.querySelectorAll('.pj-head')];
+  if (heads.length < 2) return;
+  const clear = keep => heads.forEach(h => {
+    if (h !== keep && h.getAttribute('aria-expanded') === 'true') {
+      h.setAttribute('aria-expanded', 'false');       // attribute only, no synthetic clicks
+    }
+  });
+  heads.forEach(head => {
+    const card = head.closest('.pj-card');
+    card?.addEventListener('pointerenter', () => clear(head));
+    head.addEventListener('click', () => clear(head));
+    head.addEventListener('focus', () => clear(head));
+  });
 })();

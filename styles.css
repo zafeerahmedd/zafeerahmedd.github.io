@@ -546,3 +546,215 @@ body{background:transparent}
 .zaq-field{position:fixed;inset:0;z-index:-1;pointer-events:none;display:block}
 body.motion-off .zaq-field{display:none}
 @media (prefers-reduced-motion: reduce){.zaq-field{display:none}}
+
+/* ---- project cards: image first, open by default on a skim ---- */
+.pj-card{position:relative;overflow:hidden}
+/* Every card gets the same 4:3 window and the whole photograph is shown
+   inside it, never cropped. Portrait and panoramic shots fill the leftover
+   space with a blurred, darkened copy of themselves, so the frame stays one
+   size across the grid without cutting anything off. 4:3 was chosen because
+   it wastes the least: across these 18 images it leaves 24% blurred, against
+   30% for the 16:10 box this replaces, and six of them are native 4:3. */
+.pj-shot{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;
+  border-bottom:1px solid var(--line);background:var(--bg)}
+.pj-shot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:blur(18px) saturate(.6) brightness(.42);transform:scale(1.15);pointer-events:none}
+.pj-thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  filter:saturate(.86) brightness(.82);transition:filter .3s ease,transform .5s cubic-bezier(.16,1,.3,1)}
+.pj-card:hover .pj-thumb,.pj-card:focus-within .pj-thumb{filter:saturate(1) brightness(1);transform:scale(1.03)}
+.pj-head{width:100%}
+
+
+/* ---- experience: first bullet visible without opening ---- */
+.exp-peek{grid-column:2/-1;margin:2px 0 0;font-size:13.4px;line-height:1.55;color:var(--muted);max-width:68ch}
+.role-detail[open] .exp-peek{display:none}
+@media (max-width:700px){.exp-peek{grid-column:1/-1}}
+
+/* ---- capabilities as a matrix instead of middot runs ---- */
+.cap-matrix{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:14px;margin:18px 0 0}
+.cap-cell{border:1px solid var(--line);border-radius:6px;background:var(--surface);padding:15px 16px 17px}
+.cap-cell h4{margin:0 0 3px;font:700 13.5px/1.3 var(--font-display);color:var(--ink)}
+.cap-cell .cap-note{display:block;font:700 9px/1 var(--font-mono);letter-spacing:.1em;color:var(--accent);margin:0 0 10px}
+.cap-cell ul{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:5px}
+.cap-cell li{font:400 11.4px/1 var(--font-mono);color:var(--muted);
+  border:1px solid var(--line);border-radius:3px;padding:6px 8px;background:var(--bg)}
+.cap-cell li.is-core{color:var(--ink);border-color:rgba(255,132,101,.42);background:rgba(255,132,101,.08)}
+
+/* ================= new hero, built strip, at-a-glance band ================ */
+.pz-hero{padding:26px 0 54px;position:relative}
+.anchor-about{display:block;position:relative;top:-100px;height:0}
+.pz-grid{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);gap:46px;align-items:center}
+.pz-copy{min-width:0}
+.pz-eyebrow{font:700 11px/1.5 var(--font-mono);letter-spacing:.14em;color:var(--accent);margin:0 0 18px}
+.pz-name{font:700 clamp(38px,5.4vw,64px)/.96 var(--font-display);letter-spacing:-.02em;margin:0 0 20px;color:var(--ink)}
+.pz-name span{display:block;color:var(--accent)}
+.pz-line{font:400 clamp(17px,2vw,23px)/1.42 var(--font-display);color:var(--ink);margin:0 0 10px;max-width:19em}
+.pz-sub{font-size:14.5px;line-height:1.6;color:var(--muted);margin:0 0 24px;max-width:30em}
+.pz-chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px;padding:0;list-style:none}
+.pz-chips li{font:700 10.5px/1 var(--font-mono);letter-spacing:.08em;color:var(--ink);
+  background:rgba(255,132,101,.1);border:1px solid rgba(255,132,101,.34);border-radius:999px;padding:8px 13px}
+.pz-cta{display:flex;flex-wrap:wrap;gap:10px}
+.pz-btn{display:inline-block;font:700 13px/1 var(--font-display);text-decoration:none;padding:14px 20px;
+  border-radius:4px;background:var(--accent);color:#170d0a;border:1px solid var(--accent)}
+.pz-btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.pz-btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.pz-figure{margin:0;position:relative;min-width:0}
+/* the hero portrait keeps its original instrument-panel frame inside the new grid */
+.pz-grid .pz-portrait{margin:0;min-width:0;align-self:center}
+.pz-figure img{display:block;width:100%;height:clamp(330px,46vw,474px);object-fit:cover;
+  border-radius:6px;border:1px solid var(--line)}
+.pz-figure figcaption{position:absolute;left:12px;bottom:12px;right:12px;font:600 10px/1.45 var(--font-mono);
+  letter-spacing:.07em;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.pz-built{border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:rgba(255,132,101,.045)}
+.pz-built p{margin:0;padding:15px 0;font:400 13.5px/1.6 var(--font-display);color:var(--muted)}
+.pz-built b{color:var(--ink);font-weight:700}
+.pz-glance{padding:50px 0 58px}
+.pz-head{display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 26px}
+.pz-head h2{font:700 clamp(23px,3vw,32px)/1.1 var(--font-display);color:var(--ink);margin:0}
+.pz-head span{font:700 10.5px/1 var(--font-mono);letter-spacing:.12em;color:var(--muted)}
+.pz-tracks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.pz-track{border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden;
+  display:flex;flex-direction:column}
+.pz-track img{display:block;width:100%;height:142px;object-fit:cover;border-bottom:1px solid var(--line)}
+.pz-track .pz-body{padding:17px 17px 19px;display:flex;flex-direction:column;flex:1}
+.pz-track h3{font:700 15.5px/1.25 var(--font-display);color:var(--ink);margin:0 0 3px}
+.pz-track .pz-role{font:700 9.5px/1 var(--font-mono);letter-spacing:.1em;color:var(--accent);margin:0 0 11px}
+.pz-track ul{margin:0 0 13px;padding:0 0 0 15px;list-style:none}
+.pz-track li{position:relative;font-size:12.8px;line-height:1.5;color:var(--muted);margin:0 0 5px}
+.pz-track li::before{content:"";position:absolute;left:-13px;top:.62em;width:5px;height:1px;background:var(--accent)}
+.pz-proof{margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
+.pz-proof b{display:block;font:700 9.5px/1 var(--font-mono);letter-spacing:.1em;color:var(--muted);margin:0 0 5px}
+.pz-proof span{font-size:12.6px;line-height:1.45;color:var(--ink)}
+.pz-also{margin:16px 0 0;border:1px dashed var(--line);border-radius:6px;padding:14px 17px;
+  font-size:12.8px;line-height:1.55;color:var(--muted)}
+.pz-also b{color:var(--ink);font:700 9.5px/1 var(--font-mono);letter-spacing:.1em;margin-right:9px}
+@media (max-width:900px){
+  .pz-grid{grid-template-columns:1fr;gap:28px}
+  .pz-figure{order:-1}
+  .pz-tracks{grid-template-columns:1fr}
+  .pz-track img{height:170px}
+}
+
+/* ================== project grid: piston stroke on entry =================
+   Each card behaves like a piston in a cylinder. It enters from bottom dead
+   centre, overshoots slightly past top dead centre, then settles. Columns
+   fire in an offset order rather than left to right, the way a multi-cylinder
+   bank does, so the grid reads as an engine turning over once.
+
+   The resting state is the DEFAULT. JS adds .pistons-armed to <body> before
+   arming the observer, so with JS off, motion off, or the observer never
+   firing, every card is simply visible. Motion is a flourish here, never a
+   gate on content. */
+.pj-grid.pistons-armed .pj-card{opacity:0;transform:translate3d(0,30px,0)}
+.pj-grid.pistons-armed .pj-card.is-fired{animation:piston-stroke .62s cubic-bezier(.2,.75,.25,1) both;
+  animation-delay:var(--stroke,0ms)}
+@keyframes piston-stroke{
+  0%  {opacity:0;transform:translate3d(0,30px,0)}
+  55% {opacity:1;transform:translate3d(0,-7px,0)}   /* past top dead centre */
+  78% {transform:translate3d(0,2px,0)}
+  100%{opacity:1;transform:translate3d(0,0,0)}
+}
+/* the combustion flash: the head of the cylinder lights as the piston peaks */
+.pj-grid.pistons-armed .pj-card::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;
+  background:var(--accent);opacity:0;pointer-events:none;z-index:2}
+.pj-grid.pistons-armed .pj-card.is-fired::after{animation:piston-spark .62s ease-out both;
+  animation-delay:var(--stroke,0ms)}
+@keyframes piston-spark{0%,38%{opacity:0}56%{opacity:.85}100%{opacity:0}}
+
+/* Motion off, or the OS asking for less motion, removes the stroke entirely. */
+body.motion-off .pj-card,
+body.motion-off .pj-card.is-fired{opacity:1!important;transform:none!important;animation:none!important}
+body.motion-off .pj-card::after{display:none}
+@media (prefers-reduced-motion: reduce){
+  .pj-grid.pistons-armed .pj-card,.pj-grid.pistons-armed .pj-card.is-fired{opacity:1!important;transform:none!important;animation:none!important}
+  .pj-grid.pistons-armed .pj-card::after{display:none}
+}
+
+/* ============ readability pass: bigger type, less dead margin ============ */
+
+/* --- whole card opens the project page -----------------------------------
+   The "View project details" link was the only target and it is tiny. Give it
+   a stretched hit area covering the entire card. The + button and the skill
+   chips sit above it, so expanding still works and nothing is trapped. */
+.pj-card{position:relative;isolation:isolate}
+.pj-open{position:static}
+.pj-open::after{content:"";position:absolute;inset:0;z-index:1}
+/* The header button sits UNDER the overlay so clicking the title, the tag or
+   the image opens the project. Only the + cue is lifted above it, so the
+   expand toggle keeps a target of its own. */
+/* position:static matters. A positioned .pj-head with a z-index would open a
+   stacking context and trap the cue's z-index inside it, under the overlay. */
+.pj-head{position:static}
+.pj-cue{position:relative;z-index:3;display:grid;place-items:center;
+  width:34px;height:34px;margin:-7px -6px -7px 0;border-radius:50%;font-size:19px}
+.pj-head:hover .pj-cue{background:rgba(255,132,101,.16);color:var(--accent)}
+.pj-card:hover{border-color:rgba(255,132,101,.45)}
+.pj-card:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.pj-open{font-size:13.5px;font-weight:700}
+
+/* --- experience: the content was a narrow ribbon in a wide frame --------- */
+.role-detail summary{grid-template-columns:200px minmax(0,1fr) 28px;gap:30px;padding:30px 0}
+.role-detail summary strong{font-size:21px;line-height:1.25}
+.role-detail summary strong small{font-size:14.5px}
+.role-detail summary>span:first-child{font-size:12.5px;line-height:1.6}
+.exp-peek{font-size:15px;line-height:1.6;max-width:none}
+.role-detail .vtext{font-size:12px;line-height:1.7}
+.role-detail .vtext li{font-size:15px;line-height:1.65;margin-bottom:8px}
+.exp-strip b{font-size:26px}
+.exp-strip div{font-size:13px}
+@media (max-width:860px){
+  .role-detail summary{grid-template-columns:minmax(0,1fr) 28px;gap:14px}
+  .role-detail summary strong{font-size:18px}
+}
+
+/* --- capability chips: readable at a glance, higher contrast ------------- */
+.cap-matrix{grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.cap-cell{padding:19px 20px 21px}
+.cap-cell h4{font-size:16px;margin-bottom:4px}
+.cap-cell .cap-note{font-size:10px;margin-bottom:13px}
+.cap-cell ul{gap:7px}
+.cap-cell li{font-size:13.4px;line-height:1.3;padding:8px 11px;
+  color:#d9d3e4;border-color:#3a2f55;background:#171130}
+.cap-cell li.is-core{color:#fff;font-weight:700;
+  border-color:var(--accent);background:rgba(255,132,101,.17)}
+
+/* --- credentials: show the certificate, do not hide it behind a toggle --- */
+/* four children: thumbnail, text, date, the + toggle */
+.credlist summary{display:grid;grid-template-columns:76px minmax(0,1fr) auto auto;gap:18px;align-items:center;list-style:none;cursor:pointer}
+.credlist summary>b.plus{margin-left:0;padding-left:0}
+.credlist summary::-webkit-details-marker{display:none}
+.credlist summary::marker{content:""}
+.cred-thumb{width:76px;height:56px;object-fit:cover;border-radius:4px;
+  border:1px solid var(--line);background:#fff;
+  filter:saturate(.9) brightness(.95);transition:filter .25s ease,transform .25s ease}
+.credlist summary:hover .cred-thumb{filter:none;transform:scale(1.04)}
+.credlist summary strong{font-size:16.5px;line-height:1.3}
+.credlist summary .sub{font-size:13px}
+.credlist summary .when{font-size:12.5px}
+@media (max-width:700px){
+  .credlist summary{grid-template-columns:58px minmax(0,1fr) auto;gap:12px}
+  .cred-thumb{width:58px;height:44px}
+  .credlist summary .when{grid-column:2}
+}
+
+/* --- education and contact links: one row, consistent order -------------- */
+.contact-links a{font-size:14px}
+
+/* ---- at-a-glance cards: same blur-fill frame as the project grid ------- */
+.pz-shot{position:relative;width:100%;aspect-ratio:4/3;overflow:hidden;
+  border-bottom:1px solid var(--line);background:var(--bg)}
+.pz-shot-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  filter:blur(18px) saturate(.6) brightness(.42);transform:scale(1.15);pointer-events:none}
+.pz-track .pz-shot img:not(.pz-shot-bg){position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;border-bottom:0}
+.pz-track>img{display:none}   /* the old cropped direct child, if any survives */
+
+/* ---- capabilities: 3 across, 2 down, one line per chip ----------------- */
+.cap-matrix{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.cap-cell{padding:20px 22px 22px}
+.cap-cell li{font-size:12.8px;white-space:nowrap;padding:8px 11px}
+@media (max-width:1100px){.cap-matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:720px){
+  .cap-matrix{grid-template-columns:1fr}
+  .cap-cell li{white-space:normal}      /* wrapping beats overflow on a phone */
+}
